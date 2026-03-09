@@ -28,7 +28,7 @@ function avatarInitials(name: string): string {
 // ---------- Форма створення / редагування ----------
 interface UserFormProps {
   initial?: UserRecord;
-  onSave: (data: { name: string; phone: string; password: string; role: 'admin' | 'trainee'; currentDay: number | null }) => Promise<void>;
+  onSave: (data: { name: string; phone: string; password: string; role: 'admin' | 'trainee' }) => Promise<void>;
   onCancel: () => void;
   isEdit?: boolean;
 }
@@ -38,9 +38,6 @@ function UserForm({ initial, onSave, onCancel, isEdit }: UserFormProps) {
   const [phone, setPhone] = useState(initial?.phone ?? '');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'admin' | 'trainee'>(initial?.role ?? 'trainee');
-  const [currentDay, setCurrentDay] = useState<string>(
-    initial?.currentDay != null ? String(initial.currentDay) : ''
-  );
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -55,7 +52,6 @@ function UserForm({ initial, onSave, onCancel, isEdit }: UserFormProps) {
         phone,
         password,
         role,
-        currentDay: currentDay !== '' ? Number(currentDay) : null,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Помилка');
@@ -105,15 +101,6 @@ function UserForm({ initial, onSave, onCancel, isEdit }: UserFormProps) {
             <option value="trainee">Стажер</option>
             <option value="admin">Адмін</option>
           </select>
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">День стажування</label>
-          <input
-            type="number" min="1" max="365"
-            value={currentDay} onChange={e => setCurrentDay(e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-kameya-burgundy"
-            placeholder="Непризначено"
-          />
         </div>
       </div>
 
@@ -253,40 +240,34 @@ export default function UsersManager({ onUsersChange }: UsersManagerProps) {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors group">
+                <div className="flex items-center gap-4 py-3 rounded-xl hover:bg-gray-50 transition-colors group">
                   {/* Аватар */}
                   <div className={`w-10 h-10 rounded-full ${avatarColor(u.name)} flex items-center justify-center text-white font-bold text-sm shrink-0`}>
                     {avatarInitials(u.name)}
                   </div>
 
-                  {/* Інфо */}
+                  {/* Інфо + Роль + День (все вертикально на мобілці) */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{u.name}</p>
-                    <p className="text-xs text-gray-400">{u.phone}</p>
-                  </div>
-
-                  {/* Роль */}
-                  <span className={`shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                    u.role === 'admin'
-                      ? 'bg-kameya-burgundy/10 text-kameya-burgundy'
-                      : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {ROLE_LABEL[u.role]}
-                  </span>
-
-                  {/* День стажування */}
-                  <div className="shrink-0 text-center hidden sm:block">
-                    {u.currentDay != null ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[11px] font-semibold">
-                        <i className="fas fa-calendar-day text-[10px]"></i> День {u.currentDay}
+                    <div className="flex items-center flex-wrap gap-1.5 mt-0.5">
+                      <p className="text-xs text-gray-400">{u.phone}</p>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                        u.role === 'admin'
+                          ? 'bg-kameya-burgundy/10 text-kameya-burgundy'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {ROLE_LABEL[u.role]}
                       </span>
-                    ) : (
-                      <span className="text-[11px] text-gray-400 italic">Непризначено</span>
-                    )}
+                      {u.currentDay != null && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[10px] font-semibold">
+                          <i className="fas fa-calendar-day text-[9px]"></i> День {u.currentDay}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Дії */}
-                  <div className="shrink-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="shrink-0 flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <button onClick={() => setEditingId(u.id)}
                       className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-kameya-burgundy hover:bg-gray-100 transition-colors"
                       title="Редагувати">

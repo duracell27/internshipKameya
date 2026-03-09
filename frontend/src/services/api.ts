@@ -29,6 +29,20 @@ export interface UserRecord {
   currentDay: number | null;
 }
 
+export interface DayPlanTask {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+}
+
+export interface DayPlanRecord {
+  _id: string;
+  day: number;
+  isHoliday: boolean;
+  tasks: (DayPlanTask & { _id: string })[];
+}
+
 export const api = {
   login: (phone: string, password: string) =>
     request<{ token: string; user: UserRecord }>(
@@ -73,5 +87,35 @@ export const api = {
     request<{ trainee: import('../types').Trainee }>(`/api/trainees/me/days/${day}/reflection`, {
       method: 'PUT',
       body: JSON.stringify(reflection),
+    }),
+
+  // ── Admin DayPlan management ──────────────────────────────────────────────
+  getDayPlans: () =>
+    request<{ dayPlans: DayPlanRecord[] }>('/api/dayplans'),
+
+  createDayPlan: (day: number, isHoliday = false) =>
+    request<{ dayPlan: DayPlanRecord }>('/api/dayplans', {
+      method: 'POST',
+      body: JSON.stringify({ day, isHoliday }),
+    }),
+
+  deleteDayPlan: (day: number) =>
+    request<{ message: string }>(`/api/dayplans/${day}`, { method: 'DELETE' }),
+
+  addDayPlanTask: (day: number, task: { title: string; description?: string; type?: string }) =>
+    request<{ dayPlan: DayPlanRecord }>(`/api/dayplans/${day}/tasks`, {
+      method: 'POST',
+      body: JSON.stringify(task),
+    }),
+
+  updateDayPlanTask: (day: number, taskId: string, data: { title?: string; description?: string; type?: string }) =>
+    request<{ dayPlan: DayPlanRecord }>(`/api/dayplans/${day}/tasks/${taskId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteDayPlanTask: (day: number, taskId: string) =>
+    request<{ dayPlan: DayPlanRecord }>(`/api/dayplans/${day}/tasks/${taskId}`, {
+      method: 'DELETE',
     }),
 };

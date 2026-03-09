@@ -19,6 +19,7 @@ export interface Task {
 export interface DayPlan {
   day: number;
   isHoliday?: boolean;
+  isPreview?: boolean;
   tasks: Task[];
   reflection?: Reflection;
 }
@@ -28,6 +29,7 @@ export interface Trainee {
   name: string;
   position: string;
   startDate: string;
+  currentDay: number | null;
   days: DayPlan[];
 }
 

@@ -3,13 +3,14 @@ import type { Task } from '../types';
 interface TaskItemProps {
   task: Task;
   onToggle: (id: string) => void;
+  disabled?: boolean;
 }
 
-export default function TaskItem({ task, onToggle }: TaskItemProps) {
+export default function TaskItem({ task, onToggle, disabled }: TaskItemProps) {
   const getIcon = () => {
     switch (task.type) {
       case 'theory':      return 'fa-book';
-      case 'practice':    return 'fa-scissors';
+      case 'practice':    return 'fa-handshake';
       case 'meeting':     return 'fa-comments';
       case 'observation': return 'fa-eye';
       default:            return 'fa-circle-check';
@@ -18,8 +19,8 @@ export default function TaskItem({ task, onToggle }: TaskItemProps) {
 
   return (
     <div
-      className={`flex items-center p-4 rounded-xl border mb-3 transition-all cursor-pointer ${task.completed ? 'bg-gray-50 border-gray-100 opacity-60' : 'bg-white border-gray-200 hover:shadow-md'}`}
-      onClick={() => onToggle(task.id)}
+      className={`flex items-center p-4 rounded-xl border mb-3 transition-all ${disabled ? 'cursor-default opacity-60' : 'cursor-pointer'} ${task.completed ? 'bg-gray-50 border-gray-100 opacity-60' : 'bg-white border-gray-200 hover:shadow-md'}`}
+      onClick={() => !disabled && onToggle(task.id)}
     >
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-4 ${task.completed ? 'bg-green-100 text-green-600' : 'bg-red-50 text-kameya-burgundy'}`}>
         <i className={`fas ${getIcon()} text-lg`}></i>

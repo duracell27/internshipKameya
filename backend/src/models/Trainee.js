@@ -1,75 +1,91 @@
 const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
-const taskSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String, default: '' },
-  completed: { type: Boolean, default: false },
-  type: {
-    type: String,
-    enum: ['theory', 'practice', 'meeting', 'observation', 'other'],
-    default: 'other',
-  },
+const reflectionSchema = new Schema({
+  q1: Number,
+  q2: Number,
+  q3: Number,
+  q4: String,
+  q5: Number,
+  comments:    String,
+  submittedAt: Date,
+}, { _id: false });
+
+const daySchema = new Schema({
+  day:              { type: Number, required: true },
+  completedTaskIds: [{ type: Schema.Types.ObjectId }],
+  reflection:       reflectionSchema,
 });
 
-const reflectionSchema = new mongoose.Schema(
-  {
-    q1: Number,
-    q2: Number,
-    q3: Number,
-    q4: String,
-    q5: Number,
-    comments: String,
-    submittedAt: { type: Date, default: Date.now },
-  },
-  { _id: false }
-);
+const traineeSchema = new Schema({
+  user:      { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  position:  { type: String, default: '' },
+  startDate: { type: Date, default: Date.now },
+  days:      [daySchema],
+}, { timestamps: true });
 
-const daySchema = new mongoose.Schema({
-  day: { type: Number, required: true },
-  isHoliday: { type: Boolean, default: false },
-  tasks: [taskSchema],
-  reflection: { type: reflectionSchema, default: null },
-});
+traineeSchema.methods.toPublic = function (populatedUser, dayPlans = []) {
+  // Calculate current day automatically from startDate
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(this.startDate);
+  start.setHours(0, 0, 0, 0);
+  const daysSinceStart = Math.floor((today - start) / (1000 * 60 * 60 * 24));
 
-const traineeSchema = new mongoose.Schema(
-  {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
-    position: { type: String, default: '' },
-    startDate: { type: Date, default: Date.now },
-    days: [daySchema],
-  },
-  { timestamps: true }
-);
+  // If internship hasn't started yet, return empty days
+  if (daysSinceStart < 0) {
+    return {
+      id:         this._id.toString(),
+      name:       populatedUser.name,
+      position:   this.position || '',
+      startDate:  this.startDate,
+      currentDay: null,
+      days: [],
+    };
+  }
 
-traineeSchema.methods.toPublic = function (populatedUser) {
-  const u = populatedUser || this.user;
+  const currentDay = daysSinceStart + 1;
+
+  // Include days up to currentDay + 1 (next day for preview)
+  const relevantPlans = dayPlans
+    .filter(p => p.day <= currentDay + 1)
+    .sort((a, b) => a.day - b.day);
+
   return {
-    id: this._id,
-    name: u?.name ?? '',
-    position: this.position,
-    startDate: this.startDate,
-    days: this.days.map(day => ({
-      day: day.day,
-      isHoliday: day.isHoliday ?? false,
-      tasks: day.tasks.map(t => ({
-        id: t._id,
-        title: t.title,
-        description: t.description,
-        completed: t.completed,
-        type: t.type,
-      })),
-      reflection: day.reflection
-        ? {
-            q1: day.reflection.q1,
-            q2: day.reflection.q2,
-            q3: day.reflection.q3,
-            q4: day.reflection.q4,
-            q5: day.reflection.q5,
-            comments: day.reflection.comments,
-            submittedAt: day.reflection.submittedAt,
-          }
-        : undefined,
-    })),
+    id:         this._id.toString(),
+    name:       populatedUser.name,
+    position:   this.position || '',
+    startDate:  this.startDate,
+    currentDay,
+    days: relevantPlans.map(plan => {
+      const isPreview = plan.day > currentDay;
+      const td = this.days.find(d => d.day === plan.day);
+      const completedIds = (td?.completedTaskIds ?? []).map(id => id.toString());
+
+      return {
+        day:       plan.day,
+        isHoliday: plan.isHoliday,
+        isPreview,
+        tasks: plan.tasks.map(t => ({
+          id:          t._id.toString(),
+          title:       t.title,
+          description: t.description || '',
+          type:        t.type,
+          completed:   completedIds.includes(t._id.toString()),
+        })),
+        reflection: !isPreview && td?.reflection
+          ? {
+              q1:          td.reflection.q1,
+              q2:          td.reflection.q2,
+              q3:          td.reflection.q3,
+              q4:          td.reflection.q4,
+              q5:          td.reflection.q5,
+              comments:    td.reflection.comments,
+              submittedAt: td.reflection.submittedAt,
+            }
+          : undefined,
+      };
+    }),
   };
 };
 

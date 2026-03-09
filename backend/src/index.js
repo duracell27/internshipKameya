@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const traineeRoutes = require('./routes/trainee');
+const dayPlanRoutes = require('./routes/dayplan');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/trainees', traineeRoutes);
+app.use('/api/dayplans', dayPlanRoutes);
 
 // Connect to MongoDB
 mongoose
@@ -25,7 +27,7 @@ mongoose
   .then(() => {
     console.log('Connected to MongoDB');
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
     });
   })

@@ -15,7 +15,6 @@ export default function App() {
   const [trainee, setTrainee] = useState<Trainee | null>(null);
   const [traineeLoading, setTraineeLoading] = useState(false);
   const [activeDay, setActiveDay] = useState<number>(1);
-  const [shareFeedback, setShareFeedback] = useState(false);
 
   useEffect(() => {
     if (user?.role !== 'trainee') return;
@@ -51,13 +50,6 @@ export default function App() {
     } catch (err) {
       console.error(err);
     }
-  };
-
-  const handleShareProgress = () => {
-    navigator.clipboard.writeText(`Мій прогрес у Камея Academy: ${overallProgress}%`).then(() => {
-      setShareFeedback(true);
-      setTimeout(() => setShareFeedback(false), 2000);
-    });
   };
 
   if (authLoading) {
@@ -105,13 +97,6 @@ export default function App() {
                 <div className="flex justify-between items-center mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Прогрес</span>
-                    <button
-                      onClick={handleShareProgress}
-                      className="text-[10px] bg-gray-50 text-gray-400 hover:text-kameya-burgundy px-2 py-0.5 rounded border border-gray-100 transition-colors"
-                      title="Поділитися прогресом"
-                    >
-                      <i className={`fas ${shareFeedback ? 'fa-check text-green-500' : 'fa-share-nodes'}`}></i>
-                    </button>
                   </div>
                   <span className="text-lg font-bold text-kameya-burgundy">{overallProgress}%</span>
                 </div>
@@ -124,7 +109,7 @@ export default function App() {
               </div>
             </header>
 
-            <div className="mb-10 overflow-x-auto pb-4">
+            <div className="mb-10 overflow-x-auto pb-4 pt-2">
               <div className="flex space-x-4 min-w-max px-1">
                 {trainee.days.map(day => (
                   <DayCard
@@ -155,7 +140,7 @@ export default function App() {
                       </div>
                     ) : (
                       activeDayPlan?.tasks.map(task => (
-                        <TaskItem key={task.id} task={task} onToggle={toggleTask} />
+                        <TaskItem key={task.id} task={task} onToggle={toggleTask} disabled={activeDayPlan?.isPreview} />
                       ))
                     )}
                   </div>
@@ -163,11 +148,19 @@ export default function App() {
               </section>
 
               <aside className="lg:col-span-1">
-                <ReflectionForm
-                  onSubmit={submitReflection}
-                  existingReflection={activeDayPlan?.reflection}
-                  key={`${trainee.id}-${activeDay}`}
-                />
+                {activeDayPlan?.isPreview ? (
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center text-gray-400">
+                    <i className="fas fa-clock text-3xl mb-3 block"></i>
+                    <p className="text-sm font-semibold">Цей день ще не настав</p>
+                    <p className="text-xs mt-1">Рефлексія буде доступна завтра</p>
+                  </div>
+                ) : (
+                  <ReflectionForm
+                    onSubmit={submitReflection}
+                    existingReflection={activeDayPlan?.reflection}
+                    key={`${trainee.id}-${activeDay}`}
+                  />
+                )}
               </aside>
             </div>
           </>
