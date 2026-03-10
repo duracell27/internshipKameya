@@ -3,3 +3,8 @@
 @theme {
   --color-kameya-burgundy: #7B1C35;
 }
+
+html, body, #root {
+  max-width: 100%;
+  overflow-x: hidden;
+}

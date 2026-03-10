@@ -24,16 +24,43 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
 
+  const loadTrainees = async () => {
+    try {
+      const { trainees } = await api.getTrainees();
+      setTrainees(trainees);
+      if (trainees.length > 0) setSelectedTraineeId(prev => prev || trainees[0].id);
+    } catch (err) {
+      console.error('[AdminDashboard] помилка завантаження стажерів:', err);
+    }
+  };
+
   useEffect(() => {
-    Promise.all([api.getTrainees(), api.getUsers()])
-      .then(([{ trainees }, { users }]) => {
+    const load = async () => {
+      try {
+        const [{ trainees }, { users }] = await Promise.all([
+          api.getTrainees(),
+          api.getUsers(),
+        ]);
         setTrainees(trainees);
         setTraineeCount(users.filter(u => u.role === 'trainee').length);
         if (trainees.length > 0) setSelectedTraineeId(trainees[0].id);
-      })
-      .catch(() => {})
-      .finally(() => setDataLoading(false));
+      } catch (err) {
+        console.error('[AdminDashboard] помилка завантаження:', err);
+        try {
+          const { users } = await api.getUsers();
+          setTraineeCount(users.filter(u => u.role === 'trainee').length);
+        } catch {}
+      } finally {
+        setDataLoading(false);
+      }
+    };
+    load();
   }, []);
+
+  // Перезавантажуємо стажерів при переході на огляд
+  useEffect(() => {
+    if (section === 'overview') loadTrainees();
+  }, [section]);
 
   const selectedTrainee = useMemo(
     () => trainees.find(t => t.id === selectedTraineeId),
@@ -315,7 +342,10 @@ ${analysis || 'Аналіз не проведено'}
 
         {/* КОРИСТУВАЧІ */}
         {section === 'users' && (
-          <UsersManager onUsersChange={users => setTraineeCount(users.filter(u => u.role === 'trainee').length)} />
+          <UsersManager onUsersChange={users => {
+            setTraineeCount(users.filter(u => u.role === 'trainee').length);
+            loadTrainees();
+          }} />
         )}
 
         {/* ЗАВДАННЯ */}

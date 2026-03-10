@@ -73,7 +73,30 @@ export default function App() {
           <div className="flex items-center justify-center py-24">
             <i className="fas fa-spinner fa-spin text-3xl text-kameya-burgundy"></i>
           </div>
-        ) : !trainee || trainee.days.length === 0 ? (
+        ) : !trainee ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <i className="fas fa-calendar-xmark text-3xl text-gray-400"></i>
+            </div>
+            <h2 className="text-xl font-bold text-gray-700 mb-2">План ще не призначено</h2>
+            <p className="text-gray-400 text-sm max-w-xs">
+              Ваш куратор скоро додасть план навчання. Зверніться до адміністратора.
+            </p>
+          </div>
+        ) : trainee.currentDay === null && trainee.startDate ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-20 h-20 bg-kameya-burgundy/10 rounded-full flex items-center justify-center mb-4">
+              <i className="fas fa-hourglass-half text-3xl text-kameya-burgundy"></i>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Ваше стажування починається</h2>
+            <p className="text-2xl font-bold text-kameya-burgundy mt-1">
+              {new Date(trainee.startDate).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+            <p className="text-gray-400 text-sm mt-3">
+              Залишилось {Math.ceil((new Date(trainee.startDate).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86400000)} {(() => { const d = Math.ceil((new Date(trainee.startDate).setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / 86400000); return d === 1 ? 'день' : d < 5 ? 'дні' : 'днів'; })()} до початку
+            </p>
+          </div>
+        ) : trainee.days.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <i className="fas fa-calendar-xmark text-3xl text-gray-400"></i>
@@ -109,7 +132,7 @@ export default function App() {
               </div>
             </header>
 
-            <div className="mb-10 overflow-x-auto pb-4 pt-2">
+            <div className="mb-10 w-full overflow-x-auto pb-4 pt-2">
               <div className="flex space-x-4 min-w-max px-1">
                 {trainee.days.map(day => (
                   <DayCard

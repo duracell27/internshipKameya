@@ -79,7 +79,9 @@ router.put('/me/days/:day/reflection', authMiddleware, async (req, res) => {
 router.get('/', authMiddleware, adminOnly, async (_req, res) => {
   const trainees = await Trainee.find().populate('user', '-password');
   const dayPlans = await DayPlan.find().sort({ day: 1 });
-  res.json({ trainees: trainees.map(t => t.toPublic(t.user, dayPlans)) });
+  // Фільтруємо стажерів у яких видалено user-акаунт
+  const valid = trainees.filter(t => t.user != null);
+  res.json({ trainees: valid.map(t => t.toPublic(t.user, dayPlans)) });
 });
 
 // POST /api/trainees/:userId — create trainee profile for user

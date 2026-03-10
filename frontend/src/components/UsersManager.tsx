@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { api, type UserRecord } from '../services/api';
 
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
 const ROLE_LABEL: Record<string, string> = {
   admin: 'Адмін',
   trainee: 'Стажер',
@@ -28,16 +32,24 @@ function avatarInitials(name: string): string {
 // ---------- Форма створення / редагування ----------
 interface UserFormProps {
   initial?: UserRecord;
-  onSave: (data: { name: string; phone: string; password: string; role: 'admin' | 'trainee' }) => Promise<void>;
+  onSave: (data: { name: string; phone: string; password: string; role: 'admin' | 'trainee'; startDate?: string }) => Promise<void>;
   onCancel: () => void;
   isEdit?: boolean;
+  currentStartDate?: string;
 }
 
-function UserForm({ initial, onSave, onCancel, isEdit }: UserFormProps) {
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function UserForm({ initial, onSave, onCancel, isEdit, currentStartDate }: UserFormProps) {
   const [name, setName] = useState(initial?.name ?? '');
   const [phone, setPhone] = useState(initial?.phone ?? '');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'admin' | 'trainee'>(initial?.role ?? 'trainee');
+  const [startDate, setStartDate] = useState(
+    isEdit ? (currentStartDate ? currentStartDate.slice(0, 10) : todayIso()) : todayIso()
+  );
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -52,6 +64,7 @@ function UserForm({ initial, onSave, onCancel, isEdit }: UserFormProps) {
         phone,
         password,
         role,
+        ...(role === 'trainee' ? { startDate } : {}),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Помилка');
@@ -102,6 +115,16 @@ function UserForm({ initial, onSave, onCancel, isEdit }: UserFormProps) {
             <option value="admin">Адмін</option>
           </select>
         </div>
+        {role === 'trainee' && (
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Дата початку стажування</label>
+            <input
+              type="date"
+              value={startDate} onChange={e => setStartDate(e.target.value)} required
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-kameya-burgundy"
+            />
+          </div>
+        )}
       </div>
 
       {error && (
@@ -219,6 +242,7 @@ export default function UsersManager({ onUsersChange }: UsersManagerProps) {
                   <UserForm
                     initial={u}
                     isEdit
+                    currentStartDate={u.startDate}
                     onSave={data => handleUpdate(u.id, data)}
                     onCancel={() => setEditingId(null)}
                   />
@@ -258,10 +282,26 @@ export default function UsersManager({ onUsersChange }: UsersManagerProps) {
                       }`}>
                         {ROLE_LABEL[u.role]}
                       </span>
-                      {u.currentDay != null && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[10px] font-semibold">
-                          <i className="fas fa-calendar-day text-[9px]"></i> День {u.currentDay}
-                        </span>
+                      {u.role === 'trainee' && (
+                        u.daysUntilStart != null ? (
+                          // Ще не почалось
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full text-[10px] font-semibold">
+                            <i className="fas fa-hourglass-half text-[9px]"></i> Через {u.daysUntilStart} дн.
+                            {u.startDate && <span className="text-amber-400 font-normal">· {fmtDate(u.startDate)}</span>}
+                          </span>
+                        ) : u.isCompleted ? (
+                          // Завершено
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-[10px] font-semibold">
+                            <i className="fas fa-flag-checkered text-[9px]"></i> Завершено
+                            {u.endDate && <span className="font-normal">· {fmtDate(u.endDate)}</span>}
+                          </span>
+                        ) : u.currentDay != null ? (
+                          // Активне стажування
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[10px] font-semibold">
+                            <i className="fas fa-calendar-day text-[9px]"></i> День {u.currentDay}
+                            {u.endDate && <span className="text-blue-400 font-normal">· до {fmtDate(u.endDate)}</span>}
+                          </span>
+                        ) : null
                       )}
                     </div>
                   </div>

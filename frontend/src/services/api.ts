@@ -27,6 +27,10 @@ export interface UserRecord {
   phone: string;
   role: 'admin' | 'trainee';
   currentDay: number | null;
+  startDate?: string;
+  endDate?: string;
+  daysUntilStart?: number | null;
+  isCompleted?: boolean;
 }
 
 export interface DayPlanTask {
@@ -56,13 +60,13 @@ export const api = {
   getUsers: () =>
     request<{ users: UserRecord[] }>('/api/auth/users'),
 
-  createUser: (data: { name: string; phone: string; password: string; role: 'admin' | 'trainee'; currentDay?: number | null }) =>
+  createUser: (data: { name: string; phone: string; password: string; role: 'admin' | 'trainee'; currentDay?: number | null; startDate?: string }) =>
     request<{ user: UserRecord }>('/api/auth/users', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
-  updateUser: (id: string, data: Partial<{ name: string; role: 'admin' | 'trainee'; currentDay: number | null; password: string }>) =>
+  updateUser: (id: string, data: Partial<{ name: string; role: 'admin' | 'trainee'; currentDay: number | null; password: string; startDate: string }>) =>
     request<{ user: UserRecord }>(`/api/auth/users/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
