@@ -39,11 +39,11 @@ export default function ReflectionForm({ onSubmit, existingReflection }: Reflect
 
   const validate = () => {
     const newErrors: { q4?: string; comments?: string } = {};
-    if (formData.q4.trim().length > 0 && formData.q4.trim().length < 10) {
-      newErrors.q4 = 'Мінімум 10 символів або залиш поле порожнім';
+    if (formData.q4.trim().length < 10) {
+      newErrors.q4 = 'Мінімум 10 символів';
     }
-    if (formData.comments.trim().length > 0 && formData.comments.trim().length < 10) {
-      newErrors.comments = 'Мінімум 10 символів або залиш поле порожнім';
+    if (formData.comments.trim().length < 10) {
+      newErrors.comments = 'Мінімум 10 символів';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -199,37 +199,33 @@ export default function ReflectionForm({ onSubmit, existingReflection }: Reflect
       <div className="mb-6">
         <label className="block text-sm font-semibold text-gray-700 mb-2">
           4. Що викликало стрес?
-          <span className="font-normal text-gray-400 ml-1">(необов'язково)</span>
         </label>
         <textarea
           value={formData.q4}
           onChange={e => handleText('q4', e.target.value)}
-          placeholder="Якщо нічого — залиш порожнім..."
+          placeholder="Опиши, що було складним або стресовим сьогодні..."
           className={`w-full border rounded-lg p-3 text-sm focus:ring-1 focus:ring-kameya-burgundy outline-none transition-all h-20 resize-none ${
             errors.q4 ? 'border-red-400 bg-red-50' : 'border-gray-200'
           }`}
         />
         {errors.q4 && <p className="text-xs text-red-500 mt-1">{errors.q4}</p>}
-        <p className="text-xs text-gray-400 mt-1">{formData.q4.length} символів{formData.q4.length > 0 && formData.q4.length < 10 ? ` / потрібно ще ${10 - formData.q4.length}` : ''}</p>
       </div>
 
       <RatingScale label="5. Наскільки подобається в Камеї?" field="q5" />
 
       <div className="mb-6">
         <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Коментарі
-          <span className="font-normal text-gray-400 ml-1">(що було найкращим або що змінити?)</span>
+          Коментарі (що було найкращим або що змінити?)
         </label>
         <textarea
           value={formData.comments}
           onChange={e => handleText('comments', e.target.value)}
-          placeholder="Твої думки..."
+          placeholder="Поділись своїми думками про сьогоднішній день..."
           className={`w-full border rounded-lg p-3 text-sm focus:ring-1 focus:ring-kameya-burgundy outline-none transition-all h-24 resize-none ${
             errors.comments ? 'border-red-400 bg-red-50' : 'border-gray-200'
           }`}
         />
         {errors.comments && <p className="text-xs text-red-500 mt-1">{errors.comments}</p>}
-        <p className="text-xs text-gray-400 mt-1">{formData.comments.length} символів{formData.comments.length > 0 && formData.comments.length < 10 ? ` / потрібно ще ${10 - formData.comments.length}` : ''}</p>
       </div>
 
       <button
