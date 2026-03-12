@@ -22,7 +22,8 @@ export default function App() {
     api.getMyTrainee()
       .then(({ trainee }) => {
         setTrainee(trainee);
-        if (trainee.currentDay != null) setActiveDay(trainee.currentDay);
+        if (trainee.isCompleted && trainee.days.length > 0) setActiveDay(trainee.days[trainee.days.length - 1].day);
+        else if (trainee.currentDay != null) setActiveDay(trainee.currentDay);
         else if (trainee.days.length > 0) setActiveDay(trainee.days[0].day);
       })
       .catch(() => setTrainee(null))
@@ -109,6 +110,23 @@ export default function App() {
           </div>
         ) : (
           <>
+            {/* Банер завершення стажування */}
+            {trainee.isCompleted && (
+              <div className="mb-8 flex items-center gap-4 bg-emerald-50 border border-emerald-200 rounded-2xl px-6 py-4">
+                <div className="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center shrink-0">
+                  <i className="fas fa-flag-checkered"></i>
+                </div>
+                <div>
+                  <p className="font-bold text-emerald-800">Стажування завершено!</p>
+                  <p className="text-sm text-emerald-600">
+                    {trainee.endDate
+                      ? new Date(trainee.endDate).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' })
+                      : ''}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
                 <h2 className="text-3xl font-extrabold text-gray-900 leading-tight">Твоє навчання</h2>
@@ -141,7 +159,7 @@ export default function App() {
                     dayPlan={day}
                     isActive={activeDay === day.day}
                     isCompleted={day.tasks.length > 0 && day.tasks.every(t => t.completed)}
-                    isToday={day.day === trainee.currentDay}
+                    isToday={!trainee.isCompleted && day.day === trainee.currentDay}
                     onClick={() => setActiveDay(day.day)}
                   />
                 ))}
@@ -173,12 +191,32 @@ export default function App() {
               </section>
 
               <aside className="lg:col-span-1">
-                {activeDayPlan?.isPreview ? (
+                {activeDayPlan?.isHoliday ? (
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center text-gray-400">
+                    <i className="fas fa-umbrella-beach text-3xl mb-3 block"></i>
+                    <p className="text-sm font-semibold">Вихідний день</p>
+                    <p className="text-xs mt-1">Рефлексія не потрібна</p>
+                  </div>
+                ) : activeDayPlan?.isPreview ? (
                   <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center text-gray-400">
                     <i className="fas fa-clock text-3xl mb-3 block"></i>
                     <p className="text-sm font-semibold">Цей день ще не настав</p>
                     <p className="text-xs mt-1">Рефлексія буде доступна завтра</p>
                   </div>
+                ) : trainee.isCompleted ? (
+                  activeDayPlan?.reflection ? (
+                    <ReflectionForm
+                      onSubmit={submitReflection}
+                      existingReflection={activeDayPlan.reflection}
+                      key={`${trainee.id}-${activeDay}`}
+                    />
+                  ) : (
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center text-gray-400">
+                      <i className="fas fa-flag-checkered text-3xl mb-3 block text-emerald-400"></i>
+                      <p className="text-sm font-semibold text-gray-500">Стажування завершено</p>
+                      <p className="text-xs mt-1">Рефлексія не була заповнена</p>
+                    </div>
+                  )
                 ) : (
                   <ReflectionForm
                     onSubmit={submitReflection}

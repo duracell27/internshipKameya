@@ -21,6 +21,23 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return data as T;
 }
 
+export interface EventRecord {
+  _id: string;
+  type: 'login_success' | 'login_failed' | 'user_created' | 'user_updated' | 'user_deleted' | 'reflection_submitted';
+  actorId?: string;
+  actorName?: string;
+  targetId?: string;
+  targetName?: string;
+  meta?: {
+    phone?: string;
+    role?: string;
+    changes?: string[];
+    day?: number;
+    traineeId?: string;
+  };
+  createdAt: string;
+}
+
 export interface UserRecord {
   id: string;
   name: string;
@@ -122,6 +139,10 @@ export const api = {
     request<{ dayPlan: DayPlanRecord }>(`/api/dayplans/${day}/tasks/${taskId}`, {
       method: 'DELETE',
     }),
+
+  // ── Events ───────────────────────────────────────────────────────────────
+  getEvents: () =>
+    request<{ events: EventRecord[] }>('/api/events'),
 
   // ── AI ───────────────────────────────────────────────────────────────────
   analyzeReflections: (traineeId: string, days: import('../types').DayPlan[], traineeName: string) =>

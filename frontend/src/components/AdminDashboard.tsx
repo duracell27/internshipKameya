@@ -1,16 +1,18 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { Trainee } from '../types';
 import UsersManager from './UsersManager';
 import TasksManager from './TasksManager';
+import EventsLog from './EventsLog';
 import { api } from '../services/api';
 
-type Section = 'overview' | 'users' | 'tasks';
+type Section = 'overview' | 'users' | 'tasks' | 'events';
 
 const NAV_ITEMS: { id: Section; label: string; icon: string }[] = [
   { id: 'overview', label: 'Огляд',        icon: 'fa-chart-bar' },
   { id: 'users',    label: 'Користувачі',  icon: 'fa-users' },
   { id: 'tasks',    label: 'Завдання',     icon: 'fa-list-check' },
+  { id: 'events',   label: 'Події',        icon: 'fa-clock-rotate-left' },
 ];
 
 export default function AdminDashboard() {
@@ -24,6 +26,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [openReportId, setOpenReportId] = useState<string | null>(null);
+  const [scrollToDay, setScrollToDay] = useState<number | null>(null);
+  const scrollPending = useRef(false);
 
   const loadTrainees = async () => {
     try {
@@ -62,6 +66,25 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (section === 'overview') loadTrainees();
   }, [section]);
+
+  // Скрол до рефлексії після переходу на огляд
+  useEffect(() => {
+    if (section === 'overview' && scrollToDay !== null && scrollPending.current) {
+      scrollPending.current = false;
+      const el = document.getElementById(`reflection-day-${scrollToDay}`);
+      if (el) {
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+      }
+      setScrollToDay(null);
+    }
+  }, [section, scrollToDay, trainees]);
+
+  const handleViewReflection = (traineeId: string, day: number) => {
+    setSelectedTraineeId(traineeId);
+    setScrollToDay(day);
+    scrollPending.current = true;
+    setSection('overview');
+  };
 
   const selectedTrainee = useMemo(
     () => trainees.find(t => t.id === selectedTraineeId),
@@ -356,7 +379,7 @@ export default function AdminDashboard() {
                 </h2>
                 <div className="space-y-4">
                   {[...selectedTrainee.days].filter(d => d.reflection).reverse().map(day => (
-                    <div key={day.day} className="flex gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <div key={day.day} id={`reflection-day-${day.day}`} className={`flex gap-4 p-4 rounded-xl border transition-colors ${scrollToDay === day.day ? 'bg-purple-50 border-purple-200' : 'bg-gray-50 border-gray-100'}`}>
                       <div className="w-10 h-10 shrink-0 bg-kameya-burgundy text-white rounded-lg flex flex-col items-center justify-center font-bold text-xs">
                         <span>Д</span>
                         <span>{day.day}</span>
@@ -416,6 +439,11 @@ export default function AdminDashboard() {
         {/* ЗАВДАННЯ */}
         {section === 'tasks' && (
           <TasksManager />
+        )}
+
+        {/* ПОДІЇ */}
+        {section === 'events' && (
+          <EventsLog onViewReflection={handleViewReflection} />
         )}
       </div>
     </div>

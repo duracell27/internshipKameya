@@ -36,7 +36,9 @@ export interface Trainee {
   name: string;
   position: string;
   startDate: string;
+  endDate?: string;
   currentDay: number | null;
+  isCompleted?: boolean;
   days: DayPlan[];
   aiReports: AiReport[];
 }

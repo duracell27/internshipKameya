@@ -6,6 +6,7 @@ const Trainee = require('../models/Trainee');
 const DayPlan = require('../models/DayPlan');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
 const { sendWelcomeSms } = require('../services/smsService');
+const { logEvent } = require('../services/eventService');
 
 const router = express.Router();
 
@@ -21,8 +22,11 @@ router.post('/login', async (req, res) => {
   const user = await User.findOne({ phone: normalized });
 
   if (!user || !(await user.comparePassword(password))) {
+    logEvent('login_failed', { meta: { phone: normalized } });
     return res.status(401).json({ message: 'Невірний номер або пароль' });
   }
+
+  logEvent('login_success', { actorId: user._id, actorName: user.name });
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
@@ -65,6 +69,14 @@ router.post('/users', authMiddleware, adminOnly, async (req, res) => {
     sendWelcomeSms(user.phone, user.name, normalizePhone(phone), password).catch(() => {});
   }
 
+  logEvent('user_created', {
+    actorId: req.user._id,
+    actorName: req.user.name,
+    targetId: user._id,
+    targetName: user.name,
+    meta: { role: user.role, phone: normalized },
+  });
+
   res.status(201).json({ user: user.toPublic() });
 });
 
@@ -74,15 +86,27 @@ router.patch('/users/:id', authMiddleware, adminOnly, async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) return res.status(404).json({ message: 'Користувача не знайдено' });
 
-  if (name !== undefined) user.name = name;
-  if (role !== undefined) user.role = role;
-  if (currentDay !== undefined) user.currentDay = currentDay ?? null;
-  if (password) user.password = password; // буде захешовано через pre-save
+  const changes = [];
+  if (name !== undefined && name !== user.name) { user.name = name; changes.push('name'); }
+  if (role !== undefined && role !== user.role) { user.role = role; changes.push('role'); }
+  if (currentDay !== undefined) { user.currentDay = currentDay ?? null; changes.push('currentDay'); }
+  if (password) { user.password = password; changes.push('password'); } // буде захешовано через pre-save
 
   await user.save();
 
   if (startDate !== undefined) {
     await Trainee.findOneAndUpdate({ user: user._id }, { startDate: new Date(startDate) });
+    changes.push('startDate');
+  }
+
+  if (changes.length > 0) {
+    logEvent('user_updated', {
+      actorId: req.user._id,
+      actorName: req.user.name,
+      targetId: user._id,
+      targetName: user.name,
+      meta: { changes },
+    });
   }
 
   res.json({ user: user.toPublic() });
@@ -131,6 +155,16 @@ router.get('/users', authMiddleware, adminOnly, async (_req, res) => {
 
 // DELETE /api/auth/users/:id
 router.delete('/users/:id', authMiddleware, adminOnly, async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (user) {
+    logEvent('user_deleted', {
+      actorId: req.user._id,
+      actorName: req.user.name,
+      targetId: user._id,
+      targetName: user.name,
+      meta: { role: user.role },
+    });
+  }
   await User.findByIdAndDelete(req.params.id);
   res.json({ message: 'Видалено' });
 });

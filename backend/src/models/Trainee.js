@@ -51,18 +51,29 @@ traineeSchema.methods.toPublic = function (populatedUser, dayPlans = []) {
     };
   }
 
-  const currentDay = daysSinceStart + 1;
+  const totalDays = dayPlans.length > 0
+    ? Math.max(...dayPlans.map(p => p.day))
+    : 14;
+
+  const isCompleted = daysSinceStart >= totalDays;
+  const currentDay  = isCompleted ? totalDays : daysSinceStart + 1;
+
+  // Дата завершення = startDate + totalDays - 1
+  const endDate = new Date(start);
+  endDate.setDate(endDate.getDate() + totalDays - 1);
 
   // Show all available day plans
   const relevantPlans = dayPlans
     .sort((a, b) => a.day - b.day);
 
   return {
-    id:         this._id.toString(),
-    name:       populatedUser.name,
-    position:   this.position || '',
-    startDate:  this.startDate,
+    id:          this._id.toString(),
+    name:        populatedUser.name,
+    position:    this.position || '',
+    startDate:   this.startDate,
+    endDate:     endDate.toISOString(),
     currentDay,
+    isCompleted,
     aiReports: (this.aiReports ?? []).map(r => ({
       id:        r._id.toString(),
       analysis:  r.analysis,
@@ -70,7 +81,7 @@ traineeSchema.methods.toPublic = function (populatedUser, dayPlans = []) {
       createdAt: r.createdAt,
     })).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
     days: relevantPlans.map(plan => {
-      const isPreview = plan.day > currentDay;
+      const isPreview = !isCompleted && plan.day > currentDay;
       const td = this.days.find(d => d.day === plan.day);
       const completedIds = (td?.completedTaskIds ?? []).map(id => id.toString());
 

@@ -4,6 +4,7 @@ const Trainee = require('../models/Trainee');
 const DayPlan = require('../models/DayPlan');
 const User = require('../models/User');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
+const { logEvent } = require('../services/eventService');
 
 const router = express.Router();
 
@@ -70,6 +71,13 @@ router.put('/me/days/:day/reflection', authMiddleware, async (req, res) => {
   }
 
   await trainee.save();
+
+  logEvent('reflection_submitted', {
+    actorId: req.user._id,
+    actorName: req.user.name,
+    meta: { day: dayNum, traineeId: trainee._id.toString() },
+  });
+
   res.json({ trainee: trainee.toPublic(trainee.user, dayPlans) });
 });
 

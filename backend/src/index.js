@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth');
 const traineeRoutes = require('./routes/trainee');
 const dayPlanRoutes = require('./routes/dayplan');
 const aiRoutes = require('./routes/ai');
+const eventRoutes = require('./routes/events');
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/trainees', traineeRoutes);
 app.use('/api/dayplans', dayPlanRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/events', eventRoutes);
 
 // Connect to MongoDB
 mongoose
