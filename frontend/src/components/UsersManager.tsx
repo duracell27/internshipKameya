@@ -147,15 +147,23 @@ function UserForm({ initial, onSave, onCancel, isEdit, currentStartDate }: UserF
   );
 }
 
-function sortUsers(users: UserRecord[]): UserRecord[] {
+type SortMode = 'status' | 'name';
+
+function statusOrder(u: UserRecord): number {
+  if (u.role === 'admin') return 3;
+  if (u.isCompleted) return 2;
+  return 1; // active trainee
+}
+
+function sortUsers(users: UserRecord[], mode: SortMode): UserRecord[] {
   return [...users].sort((a, b) => {
-    if (a.role !== b.role) return a.role === 'trainee' ? -1 : 1;
-    if (a.role === 'trainee') {
-      if (a.currentDay == null && b.currentDay == null) return 0;
-      if (a.currentDay == null) return 1;
-      if (b.currentDay == null) return -1;
-      return b.currentDay - a.currentDay;
-    }
+    if (mode === 'name') return a.name.localeCompare(b.name, 'uk');
+    // mode === 'status'
+    const sa = statusOrder(a);
+    const sb = statusOrder(b);
+    if (sa !== sb) return sa - sb;
+    // within active trainees — descending by currentDay
+    if (sa === 1) return (b.currentDay ?? 0) - (a.currentDay ?? 0);
     return 0;
   });
 }
@@ -167,15 +175,18 @@ interface UsersManagerProps {
 
 export default function UsersManager({ onUsersChange }: UsersManagerProps) {
   const [users, setUsers] = useState<UserRecord[]>([]);
+  const [rawUsers, setRawUsers] = useState<UserRecord[]>([]);
   const [loadingList, setLoadingList] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [sortMode, setSortMode] = useState<SortMode>('status');
 
   const loadUsers = async () => {
     try {
       const { users } = await api.getUsers();
-      const sorted = sortUsers(users);
+      setRawUsers(users);
+      const sorted = sortUsers(users, sortMode);
       setUsers(sorted);
       onUsersChange?.(sorted);
     } finally {
@@ -184,6 +195,13 @@ export default function UsersManager({ onUsersChange }: UsersManagerProps) {
   };
 
   useEffect(() => { loadUsers(); }, []);
+
+  useEffect(() => {
+    if (rawUsers.length === 0) return;
+    const sorted = sortUsers(rawUsers, sortMode);
+    setUsers(sorted);
+    onUsersChange?.(sorted);
+  }, [sortMode]);
 
   const handleCreate = async (data: Parameters<typeof api.createUser>[0]) => {
     await api.createUser(data);
@@ -207,14 +225,32 @@ export default function UsersManager({ onUsersChange }: UsersManagerProps) {
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-800">Користувачі</h2>
-        {!showCreate && (
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 bg-kameya-burgundy text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-900 transition-colors"
-          >
-            <i className="fas fa-plus"></i> Додати
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs font-semibold">
+            <button
+              onClick={() => setSortMode('status')}
+              className={`px-3 py-1.5 transition-colors ${sortMode === 'status' ? 'bg-kameya-burgundy text-white' : 'text-gray-500 hover:bg-gray-50'}`}
+              title="Сортувати за статусом"
+            >
+              <i className="fas fa-layer-group mr-1"></i>Статус
+            </button>
+            <button
+              onClick={() => setSortMode('name')}
+              className={`px-3 py-1.5 transition-colors border-l border-gray-200 ${sortMode === 'name' ? 'bg-kameya-burgundy text-white' : 'text-gray-500 hover:bg-gray-50'}`}
+              title="Сортувати за іменем"
+            >
+              <i className="fas fa-arrow-down-a-z mr-1"></i>Ім'я
+            </button>
+          </div>
+          {!showCreate && (
+            <button
+              onClick={() => setShowCreate(true)}
+              className="flex items-center gap-2 bg-kameya-burgundy text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-900 transition-colors"
+            >
+              <i className="fas fa-plus"></i> Додати
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Форма створення */}

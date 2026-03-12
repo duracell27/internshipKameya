@@ -109,8 +109,8 @@ export default function LoginPage() {
 
         <p className="text-center text-xs text-gray-400 mt-6">
           Не маєш акаунту? Зверніться до адміністратора:{' '}
-          <a href="tel:+380669832666" className="text-kameya-burgundy font-semibold hover:underline">
-            066 983 26 66
+          <a href="https://t.me/+380972615389" target="_blank" rel="noopener noreferrer" className="text-kameya-burgundy font-semibold hover:underline inline-flex items-center gap-1">
+            <i className="fab fa-telegram text-[11px]"></i> 097 261 53 89
           </a>
         </p>
       </div>

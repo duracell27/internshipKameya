@@ -17,11 +17,18 @@ const daySchema = new Schema({
   reflection:       reflectionSchema,
 });
 
+const aiReportSchema = new Schema({
+  analysis:  { type: String, required: true },
+  daysCount: { type: Number, required: true },
+  createdAt: { type: Date, default: Date.now },
+}, { _id: true });
+
 const traineeSchema = new Schema({
   user:      { type: Schema.Types.ObjectId, ref: 'User', required: true },
   position:  { type: String, default: '' },
   startDate: { type: Date, default: Date.now },
   days:      [daySchema],
+  aiReports: [aiReportSchema],
 }, { timestamps: true });
 
 traineeSchema.methods.toPublic = function (populatedUser, dayPlans = []) {
@@ -46,9 +53,8 @@ traineeSchema.methods.toPublic = function (populatedUser, dayPlans = []) {
 
   const currentDay = daysSinceStart + 1;
 
-  // Include days up to currentDay + 1 (next day for preview)
+  // Show all available day plans
   const relevantPlans = dayPlans
-    .filter(p => p.day <= currentDay + 1)
     .sort((a, b) => a.day - b.day);
 
   return {
@@ -57,6 +63,12 @@ traineeSchema.methods.toPublic = function (populatedUser, dayPlans = []) {
     position:   this.position || '',
     startDate:  this.startDate,
     currentDay,
+    aiReports: (this.aiReports ?? []).map(r => ({
+      id:        r._id.toString(),
+      analysis:  r.analysis,
+      daysCount: r.daysCount,
+      createdAt: r.createdAt,
+    })).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
     days: relevantPlans.map(plan => {
       const isPreview = plan.day > currentDay;
       const td = this.days.find(d => d.day === plan.day);

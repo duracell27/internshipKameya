@@ -24,6 +24,13 @@ export interface DayPlan {
   reflection?: Reflection;
 }
 
+export interface AiReport {
+  id: string;
+  analysis: string;
+  daysCount: number;
+  createdAt: string;
+}
+
 export interface Trainee {
   id: string;
   name: string;
@@ -31,6 +38,7 @@ export interface Trainee {
   startDate: string;
   currentDay: number | null;
   days: DayPlan[];
+  aiReports: AiReport[];
 }
 
 export interface AuthUser {

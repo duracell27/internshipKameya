@@ -4,10 +4,11 @@ interface DayCardProps {
   dayPlan: DayPlan;
   isActive: boolean;
   isCompleted: boolean;
+  isToday?: boolean;
   onClick: () => void;
 }
 
-export default function DayCard({ dayPlan, isActive, isCompleted, onClick }: DayCardProps) {
+export default function DayCard({ dayPlan, isActive, isCompleted, isToday, onClick }: DayCardProps) {
   const isPreview = dayPlan.isPreview;
 
   return (
@@ -24,9 +25,13 @@ export default function DayCard({ dayPlan, isActive, isCompleted, onClick }: Day
     >
       <span className="text-[10px] font-bold uppercase mb-1">День</span>
       <span className="text-2xl font-bold">{dayPlan.day}</span>
-      {isPreview && !isActive && (
-        <div className="absolute bottom-1 text-[8px] font-bold text-gray-300 uppercase tracking-wide">Незабаром</div>
+      {isToday && !isActive && (
+        <div className="absolute bottom-1 text-[8px] font-bold text-kameya-burgundy uppercase tracking-wide">Сьогодні</div>
       )}
+      {isToday && isActive && (
+        <div className="absolute bottom-1 text-[8px] font-bold text-white/80 uppercase tracking-wide">Сьогодні</div>
+      )}
+
       {!isPreview && isCompleted && (
         <div className="absolute -top-2 -right-2 bg-green-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] border-2 border-white">
           <i className="fas fa-check"></i>

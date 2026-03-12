@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import type { Trainee } from '../types';
-import { analyzeReflections } from '../services/geminiService';
 import UsersManager from './UsersManager';
 import TasksManager from './TasksManager';
 import { api } from '../services/api';
@@ -22,7 +22,8 @@ export default function AdminDashboard() {
   const [selectedTraineeId, setSelectedTraineeId] = useState<string>('');
   const [analysis, setAnalysis] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [copyFeedback, setCopyFeedback] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const [openReportId, setOpenReportId] = useState<string | null>(null);
 
   const loadTrainees = async () => {
     try {
@@ -90,32 +91,48 @@ export default function AdminDashboard() {
   const handleAnalyze = async () => {
     if (!selectedTrainee) return;
     setLoading(true);
-    const result = await analyzeReflections(selectedTrainee.days, selectedTrainee.name);
-    setAnalysis(result || 'Помилка аналізу.');
-    setLoading(false);
+    try {
+      const { analysis } = await api.analyzeReflections(selectedTrainee.id, selectedTrainee.days, selectedTrainee.name);
+      setAnalysis(analysis);
+      loadTrainees(); // оновлюємо щоб підтягнути збережений звіт
+    } catch {
+      setAnalysis('Помилка аналізу. Перевірте налаштування AI сервісу.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleShareReport = async () => {
+  const copyToClipboard = (text: string): boolean => {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch { return false; }
+  };
+
+  const handleShareReport = async (reportId: string, reportAnalysis: string, label: string) => {
     if (!selectedTrainee) return;
-    const reportText = `
-Звіт по стажеру: ${selectedTrainee.name}
-Статистика:
-- Настрій: ${stats.q1}/5
-- Зрозумілість: ${stats.q2}/5
-- Лояльність: ${stats.q5}/5
-- К-сть рефлексій: ${stats.count}
-
-AI Висновок:
-${analysis || 'Аналіз не проведено'}
-    `.trim();
-
+    const text = `${label}\nСтажер: ${selectedTrainee.name}\n\n${reportAnalysis}`;
     if (navigator.share) {
-      try { await navigator.share({ title: `Звіт: ${selectedTrainee.name}`, text: reportText }); }
-      catch { /* скасовано */ }
-    } else {
-      await navigator.clipboard.writeText(reportText);
-      setCopyFeedback(true);
-      setTimeout(() => setCopyFeedback(false), 2000);
+      try { await navigator.share({ title: label, text }); return; }
+      catch { /* не підтримується або скасовано */ }
+    }
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(text);
+      ok = true;
+    } catch {
+      ok = copyToClipboard(text);
+    }
+    if (ok) {
+      setCopyFeedback(reportId);
+      setTimeout(() => setCopyFeedback(null), 2000);
     }
   };
 
@@ -251,15 +268,6 @@ ${analysis || 'Аналіз не проведено'}
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500">Стислий AI Звіт</h3>
                       <div className="flex gap-2">
-                        {analysis && (
-                          <button
-                            onClick={handleShareReport}
-                            className="bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-200 transition-colors flex items-center gap-1.5"
-                          >
-                            <i className={`fas ${copyFeedback ? 'fa-check text-green-500' : 'fa-share-nodes'}`}></i>
-                            {copyFeedback ? 'Скопійовано' : 'Поділитися'}
-                          </button>
-                        )}
                         <button
                           onClick={handleAnalyze}
                           disabled={loading || stats.count === 0}
@@ -271,7 +279,14 @@ ${analysis || 'Аналіз не проведено'}
                     </div>
                     {analysis ? (
                       <div className="bg-purple-50 border border-purple-100 p-4 rounded-xl text-sm text-gray-800 leading-relaxed">
-                        {analysis}
+                        <ReactMarkdown components={{
+                          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                          strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                          ul: ({ children }) => <ul className="list-disc list-inside space-y-1 mb-2">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 mb-2">{children}</ol>,
+                          li: ({ children }) => <li className="text-gray-700">{children}</li>,
+                          h3: ({ children }) => <h3 className="font-bold text-gray-900 mt-3 mb-1">{children}</h3>,
+                        }}>{analysis}</ReactMarkdown>
                       </div>
                     ) : stats.count > 0 ? (
                       <p className="text-gray-400 text-sm italic">Натисніть кнопку для генерації короткого висновку.</p>
@@ -279,6 +294,56 @@ ${analysis || 'Аналіз не проведено'}
                       <p className="text-gray-400 text-sm">Немає рефлексій для аналізу.</p>
                     )}
                   </div>
+
+                  {/* Архів AI звітів */}
+                  {(selectedTrainee?.aiReports?.length ?? 0) > 0 && (
+                    <div className="border-t border-gray-100 pt-6">
+                      <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-3">
+                        Архів звітів
+                      </h3>
+                      <div className="space-y-2">
+                        {selectedTrainee!.aiReports.map(report => {
+                          const isOpen = openReportId === report.id;
+                          const dt = new Date(report.createdAt);
+                          const label = `Стислий звіт за ${report.daysCount} дн. · ${dt.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' })} ${dt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}`;
+                          const copied = copyFeedback === report.id;
+                          return (
+                            <div key={report.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                              <button
+                                onClick={() => setOpenReportId(isOpen ? null : report.id)}
+                                className="w-full flex items-center justify-between px-4 py-3 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                              >
+                                <span className="flex items-center gap-2">
+                                  <i className="fas fa-file-lines text-purple-400 text-xs"></i>
+                                  {label}
+                                </span>
+                                <i className={`fas fa-chevron-down text-xs text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
+                              </button>
+                              {isOpen && (
+                                <div className="px-4 pb-4 pt-2 bg-purple-50 text-sm text-gray-800 leading-relaxed">
+                                  <ReactMarkdown components={{
+                                    p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                    strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                                    ul: ({ children }) => <ul className="list-disc list-inside space-y-1 mb-2">{children}</ul>,
+                                    ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 mb-2">{children}</ol>,
+                                    li: ({ children }) => <li className="text-gray-700">{children}</li>,
+                                    h3: ({ children }) => <h3 className="font-bold text-gray-900 mt-3 mb-1">{children}</h3>,
+                                  }}>{report.analysis}</ReactMarkdown>
+                                  <button
+                                    onClick={() => handleShareReport(report.id, report.analysis, label)}
+                                    className="mt-3 flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                                  >
+                                    <i className={`fas ${copied ? 'fa-check text-green-500' : 'fa-share-nodes'}`}></i>
+                                    {copied ? 'Скопійовано!' : 'Поділитися'}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : null}
             </div>

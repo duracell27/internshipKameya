@@ -22,7 +22,8 @@ export default function App() {
     api.getMyTrainee()
       .then(({ trainee }) => {
         setTrainee(trainee);
-        if (trainee.days.length > 0) setActiveDay(trainee.days[0].day);
+        if (trainee.currentDay != null) setActiveDay(trainee.currentDay);
+        else if (trainee.days.length > 0) setActiveDay(trainee.days[0].day);
       })
       .catch(() => setTrainee(null))
       .finally(() => setTraineeLoading(false));
@@ -140,6 +141,7 @@ export default function App() {
                     dayPlan={day}
                     isActive={activeDay === day.day}
                     isCompleted={day.tasks.length > 0 && day.tasks.every(t => t.completed)}
+                    isToday={day.day === trainee.currentDay}
                     onClick={() => setActiveDay(day.day)}
                   />
                 ))}
@@ -163,7 +165,7 @@ export default function App() {
                       </div>
                     ) : (
                       activeDayPlan?.tasks.map(task => (
-                        <TaskItem key={task.id} task={task} onToggle={toggleTask} disabled={activeDayPlan?.isPreview} />
+                        <TaskItem key={task.id} task={task} onToggle={toggleTask} />
                       ))
                     )}
                   </div>

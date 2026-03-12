@@ -122,4 +122,11 @@ export const api = {
     request<{ dayPlan: DayPlanRecord }>(`/api/dayplans/${day}/tasks/${taskId}`, {
       method: 'DELETE',
     }),
+
+  // ── AI ───────────────────────────────────────────────────────────────────
+  analyzeReflections: (traineeId: string, days: import('../types').DayPlan[], traineeName: string) =>
+    request<{ analysis: string }>('/api/ai/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ traineeId, days, traineeName }),
+    }),
 };

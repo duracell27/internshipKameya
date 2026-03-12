@@ -6,6 +6,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const traineeRoutes = require('./routes/trainee');
 const dayPlanRoutes = require('./routes/dayplan');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/trainees', traineeRoutes);
 app.use('/api/dayplans', dayPlanRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Connect to MongoDB
 mongoose

@@ -93,9 +93,11 @@ router.get('/users', authMiddleware, adminOnly, async (_req, res) => {
   const users = await User.find().sort({ createdAt: -1 });
   const trainees = await Trainee.find({ user: { $in: users.map(u => u._id) } });
 
-  // Загальна кількість днів плану (останній день)
+  // Фіксована тривалість стажування — 14 днів
+  const INTERNSHIP_DURATION = 14;
+  // Загальна кількість днів плану (останній день) — не менше фіксованої тривалості
   const lastPlan = await DayPlan.findOne().sort({ day: -1 }).select('day');
-  const totalDays = lastPlan ? lastPlan.day : null;
+  const totalDays = Math.max(lastPlan ? lastPlan.day : INTERNSHIP_DURATION, INTERNSHIP_DURATION);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
