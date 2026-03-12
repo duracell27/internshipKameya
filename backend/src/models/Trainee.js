@@ -51,9 +51,10 @@ traineeSchema.methods.toPublic = function (populatedUser, dayPlans = []) {
     };
   }
 
+  const INTERNSHIP_DURATION = 14;
   const totalDays = dayPlans.length > 0
-    ? Math.max(...dayPlans.map(p => p.day))
-    : 14;
+    ? Math.max(Math.max(...dayPlans.map(p => p.day)), INTERNSHIP_DURATION)
+    : INTERNSHIP_DURATION;
 
   const isCompleted = daysSinceStart >= totalDays;
   const currentDay  = isCompleted ? totalDays : daysSinceStart + 1;

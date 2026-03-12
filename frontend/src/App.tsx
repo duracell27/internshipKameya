@@ -30,6 +30,19 @@ export default function App() {
       .finally(() => setTraineeLoading(false));
   }, [user]);
 
+  useEffect(() => {
+    if (user?.role !== 'trainee') return;
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        api.getMyTrainee()
+          .then(({ trainee }) => setTrainee(trainee))
+          .catch(() => {});
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [user]);
+
   const activeDayPlan = trainee?.days.find(d => d.day === activeDay);
   const allTasks = trainee?.days.flatMap(d => d.tasks) ?? [];
   const overallProgress = allTasks.length
