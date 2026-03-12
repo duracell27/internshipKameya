@@ -223,9 +223,9 @@ export default function UsersManager({ onUsersChange }: UsersManagerProps) {
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h2 className="text-xl font-bold text-gray-800">Користувачі</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between w-full gap-2 flex-wrap">
           <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs font-semibold">
             <button
               onClick={() => setSortMode('status')}
@@ -333,9 +333,9 @@ export default function UsersManager({ onUsersChange }: UsersManagerProps) {
                           </span>
                         ) : u.currentDay != null ? (
                           // Активне стажування
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[10px] font-semibold">
-                            <i className="fas fa-calendar-day text-[9px]"></i> День {u.currentDay}
-                            {u.endDate && <span className="text-blue-400 font-normal">· до {fmtDate(u.endDate)}</span>}
+                          <span className="inline-flex flex-wrap items-center gap-x-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[10px] font-semibold">
+                            <span className="whitespace-nowrap"><i className="fas fa-calendar-day text-[9px]"></i> День {u.currentDay}</span>
+                            {u.endDate && <span className="text-blue-400 font-normal whitespace-nowrap">· до {fmtDate(u.endDate)}</span>}
                           </span>
                         ) : null
                       )}
