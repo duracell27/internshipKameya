@@ -62,15 +62,12 @@ async function sendSms(phone, message) {
  * Вітальне SMS для нового стажера
  */
 async function sendWelcomeSms(phone, name, rawPhone, password) {
-  const appUrl = process.env.APP_URL || '';
-  const firstName = name.trim().split(' ')[0];
-
   const message =
-    `Привіт, ${firstName}! Раді бачити тебе на стажуванні в Камея. ` +
-    `Твій доступ до платформи: ` +
-    `Логін: ${rawPhone}, ` +
-    `Пароль: ${password}` +
-    (appUrl ? `, Сайт: ${appUrl}` : '');
+    `Привіт, ${name.trim()}! Раді бачити тебе на стажуванні в Камея.\n` +
+    `Твій доступ до платформи:\n` +
+    `Логін: ${rawPhone}\n` +
+    `Пароль: ${password}\n` +
+    `Сайт: https://internship.kameya.if.ua`;
 
   await sendSms(phone, message);
 }

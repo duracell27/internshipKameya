@@ -133,7 +133,7 @@ export default function App() {
               </div>
             </header>
 
-            <div className="mb-10 w-full overflow-x-auto pb-4 pt-2">
+            <div className="mb-10 w-full max-w-full overflow-x-auto pb-4 pt-2">
               <div className="flex space-x-4 min-w-max px-1">
                 {trainee.days.map(day => (
                   <DayCard

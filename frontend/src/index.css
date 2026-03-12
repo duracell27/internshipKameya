@@ -4,7 +4,17 @@
   --color-kameya-burgundy: #7B1C35;
 }
 
-html, body, #root {
+html {
+  overflow-x: clip;
+}
+
+body, #root {
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
+  width: 100%;
+}
+
+/* Prevent iOS Safari auto-zoom on input focus */
+input, textarea, select {
+  font-size: 16px;
 }
