@@ -27,11 +27,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex flex-col items-center mb-10">
-          <div className="w-16 h-16 bg-kameya-burgundy rounded-full flex items-center justify-center text-white font-bold text-3xl italic shadow-lg mb-4">
-            K
-          </div>
-          <h1 className="text-2xl font-extrabold text-kameya-burgundy tracking-tight">KAMEYA</h1>
-          <p className="text-xs uppercase tracking-widest text-gray-500 font-semibold mt-1">ACADEMY</p>
+          <img src="/Logo.png" alt="Kameya Academy" className="h-20 mb-2 object-contain" />
         </div>
 
         {/* Card */}

@@ -5,14 +5,8 @@ export default function Navigation() {
 
   return (
     <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 px-4 md:px-8 py-4 flex justify-between items-center shadow-sm">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-kameya-burgundy rounded-full flex items-center justify-center text-white font-bold text-xl italic shadow-md">
-          K
-        </div>
-        <div>
-          <h1 className="text-xl font-bold text-kameya-burgundy tracking-tight">KAMEYA</h1>
-          <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">ACADEMY</p>
-        </div>
+      <div className="flex items-center">
+        <img src="/Logo.png" alt="Kameya Academy" className="h-10 object-contain" />
       </div>
 
       <div className="flex items-center space-x-3">
