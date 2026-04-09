@@ -15,7 +15,7 @@ export default function App() {
   const [trainee, setTrainee] = useState<Trainee | null>(null);
   const [traineeLoading, setTraineeLoading] = useState(false);
   const [activeDay, setActiveDay] = useState<number>(1);
-  const [showWelcome, setShowWelcome] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem('welcomeDismissed'));
 
   useEffect(() => {
     if (user?.role !== 'trainee') return;
@@ -149,7 +149,10 @@ export default function App() {
                   <p className="text-sm text-blue-700">Відмічай успіхи та ділись враженнями)</p>
                 </div>
                 <button
-                  onClick={() => setShowWelcome(false)}
+                  onClick={() => {
+                    setShowWelcome(false);
+                    localStorage.setItem('welcomeDismissed', 'true');
+                  }}
                   className="shrink-0 text-blue-400 hover:text-blue-600 ml-4 transition-colors"
                   title="Закрити"
                 >
