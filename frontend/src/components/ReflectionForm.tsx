@@ -216,8 +216,9 @@ export default function ReflectionForm({ onSubmit, existingReflection }: Reflect
       <RatingScale label="5. Наскільки подобається в Камеї?" field="q5" />
 
       <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Щоденна рефлексія (що вийшло найкраще? над чим потрібно працювати?)
+        <label className="block text-sm text-gray-700 mb-2">
+          <span className="font-semibold">Щоденна рефлексія</span>
+          <span className="font-normal"> (що вийшло найкраще? над чим потрібно працювати?)</span>
         </label>
         <textarea
           value={formData.comments}

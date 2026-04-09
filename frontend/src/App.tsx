@@ -15,6 +15,7 @@ export default function App() {
   const [trainee, setTrainee] = useState<Trainee | null>(null);
   const [traineeLoading, setTraineeLoading] = useState(false);
   const [activeDay, setActiveDay] = useState<number>(1);
+  const [showWelcome, setShowWelcome] = useState(true);
 
   useEffect(() => {
     if (user?.role !== 'trainee') return;
@@ -140,11 +141,20 @@ export default function App() {
               </div>
             )}
 
-            {trainee.currentDay === 1 && trainee.days[0]?.tasks.filter(t => t.completed).length === 0 && (
-              <div className="mb-8 bg-blue-50 border border-blue-200 rounded-2xl p-6">
-                <h3 className="text-lg font-bold text-blue-900 mb-1">Вітаємо на стажуванні!</h3>
-                <p className="text-sm text-blue-800 mb-2">Це твій особистий кабінет новачка.</p>
-                <p className="text-sm text-blue-700">Відмічай успіхи та ділись враженнями)</p>
+            {showWelcome && trainee.currentDay === 1 && trainee.days[0]?.tasks.filter(t => t.completed).length === 0 && (
+              <div className="mb-8 bg-blue-50 border border-blue-200 rounded-2xl p-6 flex items-start justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-blue-900 mb-1">Вітаємо на стажуванні!</h3>
+                  <p className="text-sm text-blue-800 mb-2">Це твій особистий кабінет новачка.</p>
+                  <p className="text-sm text-blue-700">Відмічай успіхи та ділись враженнями)</p>
+                </div>
+                <button
+                  onClick={() => setShowWelcome(false)}
+                  className="shrink-0 text-blue-400 hover:text-blue-600 ml-4 transition-colors"
+                  title="Закрити"
+                >
+                  <i className="fas fa-times text-xl"></i>
+                </button>
               </div>
             )}
 
