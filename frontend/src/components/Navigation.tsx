@@ -10,6 +10,17 @@ export default function Navigation() {
       </div>
 
       <div className="flex items-center space-x-3">
+        {user?.role === 'trainee' && (
+          <a
+            href="https://study.kameya.com.ua/login"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden md:inline-block px-3 py-1.5 border border-kameya-burgundy text-kameya-burgundy rounded-full text-xs font-semibold hover:bg-kameya-burgundy hover:text-white transition-colors"
+          >
+            Академія Камея
+          </a>
+        )}
+
         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
           user?.role === 'admin'
             ? 'bg-kameya-burgundy text-white'

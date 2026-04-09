@@ -79,9 +79,11 @@ export default function ReflectionForm({ onSubmit, existingReflection }: Reflect
           </div>
           <div>
             <h3 className="text-base font-bold text-green-800">Дякуємо за рефлексію!</h3>
-            <p className="text-xs text-green-600">
-              Твій відгук збережено{r.submittedAt ? ` · ${formatDate(r.submittedAt)}` : ''}
-            </p>
+            {r.submittedAt && (
+              <p className="text-xs text-green-600">
+                {formatDate(r.submittedAt)}
+              </p>
+            )}
           </div>
         </div>
 
@@ -215,7 +217,7 @@ export default function ReflectionForm({ onSubmit, existingReflection }: Reflect
 
       <div className="mb-6">
         <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Коментарі (що було найкращим або що змінити?)
+          Щоденна рефлексія (що вийшло найкраще? над чим потрібно працювати?)
         </label>
         <textarea
           value={formData.comments}

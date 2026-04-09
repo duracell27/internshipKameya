@@ -140,6 +140,14 @@ export default function App() {
               </div>
             )}
 
+            {trainee.currentDay === 1 && trainee.days[0]?.tasks.filter(t => t.completed).length === 0 && (
+              <div className="mb-8 bg-blue-50 border border-blue-200 rounded-2xl p-6">
+                <h3 className="text-lg font-bold text-blue-900 mb-1">Вітаємо на стажуванні!</h3>
+                <p className="text-sm text-blue-800 mb-2">Це твій особистий кабінет новачка.</p>
+                <p className="text-sm text-blue-700">Відмічай успіхи та ділись враженнями)</p>
+              </div>
+            )}
+
             <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
                 <h2 className="text-3xl font-extrabold text-gray-900 leading-tight">Твоє навчання</h2>

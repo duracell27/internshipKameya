@@ -17,6 +17,16 @@ export default function TaskItem({ task, onToggle, disabled }: TaskItemProps) {
     }
   };
 
+  const getTypeLabel = () => {
+    switch (task.type) {
+      case 'theory':      return 'Теорія';
+      case 'practice':    return 'Практика';
+      case 'meeting':     return 'Зустріч';
+      case 'observation': return 'Спостереження';
+      default:            return '';
+    }
+  };
+
   return (
     <div
       className={`flex items-center p-4 rounded-xl border mb-3 transition-all ${disabled ? 'cursor-default opacity-60' : 'cursor-pointer'} ${task.completed ? 'bg-gray-50 border-gray-100 opacity-60' : 'bg-white border-gray-200 hover:shadow-md'}`}
@@ -26,11 +36,18 @@ export default function TaskItem({ task, onToggle, disabled }: TaskItemProps) {
         <i className={`fas ${getIcon()} text-lg`}></i>
       </div>
       <div className="flex-1">
-        <h3 className={`font-semibold text-sm ${task.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
-          {task.title}
-        </h3>
+        <div className="flex items-center gap-2 mb-1">
+          <h3 className={`font-semibold text-sm ${task.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+            {task.title}
+          </h3>
+          {getTypeLabel() && (
+            <span className="text-xs font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+              {getTypeLabel()}
+            </span>
+          )}
+        </div>
         {task.description && (
-          <p className="text-xs text-gray-500 mt-0.5">{task.description}</p>
+          <p className="text-xs text-gray-500">{task.description}</p>
         )}
       </div>
       <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${task.completed ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300'}`}>
