@@ -223,6 +223,19 @@ export default function App() {
                       ))
                     )}
                   </div>
+
+                  {/* Кнопка Академія Камея */}
+                  <div className="mt-8 pt-6 border-t border-gray-200">
+                    <a
+                      href="https://study.kameya.com.ua/login"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-kameya-burgundy text-white rounded-xl font-semibold hover:bg-red-900 transition-colors text-sm"
+                    >
+                      <i className="fas fa-book"></i>
+                      Академія Камея
+                    </a>
+                  </div>
                 </div>
               </section>
 
