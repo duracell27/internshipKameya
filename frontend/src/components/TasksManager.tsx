@@ -1,21 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api, type DayPlanRecord } from '../services/api';
-
-const TASK_TYPES = [
-  { value: 'theory',      label: 'Теорія' },
-  { value: 'practice',    label: 'Практика' },
-  { value: 'meeting',     label: 'Зустріч' },
-  { value: 'observation', label: 'Спостереження' },
-  { value: 'other',       label: 'Інше' },
-];
-
-const TYPE_COLORS: Record<string, string> = {
-  theory:      'bg-blue-100 text-blue-700',
-  practice:    'bg-emerald-100 text-emerald-700',
-  meeting:     'bg-purple-100 text-purple-700',
-  observation: 'bg-amber-100 text-amber-700',
-  other:       'bg-gray-100 text-gray-600',
-};
+import { TASK_TYPES, TYPE_COLORS } from '../constants/taskTypes';
 
 // ── Task inline form ──────────────────────────────────────────────────────────
 interface TaskFormProps {

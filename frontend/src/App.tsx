@@ -27,7 +27,10 @@ export default function App() {
         else if (trainee.currentDay != null) setActiveDay(trainee.currentDay);
         else if (trainee.days.length > 0) setActiveDay(trainee.days[0].day);
       })
-      .catch(() => setTrainee(null))
+      .catch(err => {
+        console.error('Помилка завантаження програми стажера:', err);
+        setTrainee(null);
+      })
       .finally(() => setTraineeLoading(false));
   }, [user]);
 
@@ -37,7 +40,9 @@ export default function App() {
       if (document.visibilityState === 'visible') {
         api.getMyTrainee()
           .then(({ trainee }) => setTrainee(trainee))
-          .catch(() => {});
+          .catch(err => {
+            console.error('Помилка оновлення програми при повертанні на вкладку:', err);
+          });
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
@@ -146,7 +151,7 @@ export default function App() {
                 <div>
                   <h3 className="text-lg font-bold text-blue-900 mb-1">Вітаємо на стажуванні!</h3>
                   <p className="text-sm text-blue-800 mb-2">Це твій особистий кабінет новачка.</p>
-                  <p className="text-sm text-blue-700">Відмічай успіхи та ділись враженнями)</p>
+                  <p className="text-sm text-blue-700">Відмічай успіхи та ділись враженнями 🫶🏼</p>
                 </div>
                 <button
                   onClick={() => {
@@ -164,9 +169,6 @@ export default function App() {
             <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
                 <h2 className="text-3xl font-extrabold text-gray-900 leading-tight">Твоє навчання</h2>
-                <p className="text-gray-500 mt-2 max-w-lg">
-                  Особистий кабінет стажера «Камея». Відмічай успіхи та ділись враженнями.
-                </p>
               </div>
 
               <div className="w-full md:w-64 bg-white border border-gray-100 p-4 rounded-2xl shadow-sm">

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { validation } from '../utils/validation';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -12,6 +13,20 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Валідація вхідних даних
+    const phoneValidation = validation.phone(phone);
+    if (!phoneValidation.valid) {
+      setError(phoneValidation.error || 'Невірний номер телефону');
+      return;
+    }
+
+    const passwordValidation = validation.password(password);
+    if (!passwordValidation.valid) {
+      setError(passwordValidation.error || 'Невірний пароль');
+      return;
+    }
+
     setLoading(true);
     try {
       await login(phone.trim(), password);

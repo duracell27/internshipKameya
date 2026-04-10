@@ -33,7 +33,12 @@ export default function AdminDashboard() {
     try {
       const { trainees } = await api.getTrainees();
       setTrainees(trainees);
-      if (trainees.length > 0) setSelectedTraineeId(prev => prev || trainees[0].id);
+      if (trainees.length > 0) {
+        setSelectedTraineeId(prev => {
+          if (prev) return prev;
+          return trainees[0].id;
+        });
+      }
     } catch (err) {
       console.error('[AdminDashboard] помилка завантаження стажерів:', err);
     }
@@ -50,11 +55,13 @@ export default function AdminDashboard() {
         setTraineeCount(users.filter(u => u.role === 'trainee').length);
         if (trainees.length > 0) setSelectedTraineeId(trainees[0].id);
       } catch (err) {
-        console.error('[AdminDashboard] помилка завантаження:', err);
+        console.error('[AdminDashboard] Помилка завантаження стажерів:', err);
         try {
           const { users } = await api.getUsers();
           setTraineeCount(users.filter(u => u.role === 'trainee').length);
-        } catch {}
+        } catch (err2) {
+          console.error('[AdminDashboard] Помилка завантаження користувачів:', err2);
+        }
       } finally {
         setDataLoading(false);
       }
@@ -302,14 +309,20 @@ export default function AdminDashboard() {
                     </div>
                     {analysis ? (
                       <div className="bg-purple-50 border border-purple-100 p-4 rounded-xl text-sm text-gray-800 leading-relaxed">
-                        <ReactMarkdown components={{
-                          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                          strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
-                          ul: ({ children }) => <ul className="list-disc list-inside space-y-1 mb-2">{children}</ul>,
-                          ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 mb-2">{children}</ol>,
-                          li: ({ children }) => <li className="text-gray-700">{children}</li>,
-                          h3: ({ children }) => <h3 className="font-bold text-gray-900 mt-3 mb-1">{children}</h3>,
-                        }}>{analysis}</ReactMarkdown>
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                            strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                            ul: ({ children }) => <ul className="list-disc list-inside space-y-1 mb-2">{children}</ul>,
+                            ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 mb-2">{children}</ol>,
+                            li: ({ children }) => <li className="text-gray-700">{children}</li>,
+                            h3: ({ children }) => <h3 className="font-bold text-gray-900 mt-3 mb-1">{children}</h3>,
+                            a: ({ href, children }) => <a href={href?.toString()} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">{children}</a>,
+                          }}
+                          disallowedElements={['script', 'iframe', 'img']}
+                        >
+                          {analysis}
+                        </ReactMarkdown>
                       </div>
                     ) : stats.count > 0 ? (
                       <p className="text-gray-400 text-sm italic">Натисніть кнопку для генерації короткого висновку.</p>
@@ -344,14 +357,20 @@ export default function AdminDashboard() {
                               </button>
                               {isOpen && (
                                 <div className="px-4 pb-4 pt-2 bg-purple-50 text-sm text-gray-800 leading-relaxed">
-                                  <ReactMarkdown components={{
-                                    p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                                    strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
-                                    ul: ({ children }) => <ul className="list-disc list-inside space-y-1 mb-2">{children}</ul>,
-                                    ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 mb-2">{children}</ol>,
-                                    li: ({ children }) => <li className="text-gray-700">{children}</li>,
-                                    h3: ({ children }) => <h3 className="font-bold text-gray-900 mt-3 mb-1">{children}</h3>,
-                                  }}>{report.analysis}</ReactMarkdown>
+                                  <ReactMarkdown
+                                    components={{
+                                      p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                      strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                                      ul: ({ children }) => <ul className="list-disc list-inside space-y-1 mb-2">{children}</ul>,
+                                      ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 mb-2">{children}</ol>,
+                                      li: ({ children }) => <li className="text-gray-700">{children}</li>,
+                                      h3: ({ children }) => <h3 className="font-bold text-gray-900 mt-3 mb-1">{children}</h3>,
+                                      a: ({ href, children }) => <a href={href?.toString()} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">{children}</a>,
+                                    }}
+                                    disallowedElements={['script', 'iframe', 'img']}
+                                  >
+                                    {report.analysis}
+                                  </ReactMarkdown>
                                   <button
                                     onClick={() => handleShareReport(report.id, report.analysis, label)}
                                     className="mt-3 flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"

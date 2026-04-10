@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import type { Reflection } from '../types';
 
 interface ReflectionFormProps {
@@ -8,11 +8,19 @@ interface ReflectionFormProps {
 
 const RATING_LABELS: Record<number, string> = { 1: '😞', 2: '😕', 3: '😐', 4: '🙂', 5: '😄' };
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleString('uk-UA', {
-    day: 'numeric', month: 'long', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
+function formatDate(iso: string): string {
+  try {
+    const date = new Date(iso);
+    if (isNaN(date.getTime())) {
+      return 'Невідома дата';
+    }
+    return date.toLocaleString('uk-UA', {
+      day: 'numeric', month: 'long', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+  } catch {
+    return 'Невідома дата';
+  }
 }
 
 export default function ReflectionForm({ onSubmit, existingReflection }: ReflectionFormProps) {
@@ -28,16 +36,16 @@ export default function ReflectionForm({ onSubmit, existingReflection }: Reflect
   const [confirming, setConfirming] = useState(false);
   const [errors, setErrors] = useState<{ q4?: string; comments?: string }>({});
 
-  const handleRating = (key: keyof Reflection, value: number) => {
+  const handleRating = useCallback((key: keyof Reflection, value: number) => {
     setFormData(prev => ({ ...prev, [key]: value }));
-  };
+  }, []);
 
-  const handleText = (key: 'q4' | 'comments', value: string) => {
+  const handleText = useCallback((key: 'q4' | 'comments', value: string) => {
     setFormData(prev => ({ ...prev, [key]: value }));
-    if (errors[key]) setErrors(prev => ({ ...prev, [key]: undefined }));
-  };
+    setErrors(prev => (prev[key] ? { ...prev, [key]: undefined } : prev));
+  }, []);
 
-  const validate = () => {
+  const validate = useCallback(() => {
     const newErrors: { q4?: string; comments?: string } = {};
     if (formData.q4.trim().length < 10) {
       newErrors.q4 = 'Мінімум 10 символів';
@@ -47,20 +55,20 @@ export default function ReflectionForm({ onSubmit, existingReflection }: Reflect
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData]);
 
-  const handleSubmitClick = () => {
+  const handleSubmitClick = useCallback(() => {
     if (!validate()) return;
     setConfirming(true);
-  };
+  }, [validate]);
 
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     onSubmit({ ...formData, submittedAt: new Date().toISOString() });
     setConfirming(false);
     setSubmitted(true);
-  };
+  }, [formData, onSubmit]);
 
-  const ratingLabel = (val: number) => RATING_LABELS[val] ?? val;
+  const ratingLabel = useCallback((val: number) => RATING_LABELS[val] ?? val, []);
 
   if (submitted) {
     const r = formData;
@@ -189,10 +197,11 @@ export default function ReflectionForm({ onSubmit, existingReflection }: Reflect
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-      <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center">
+      <h2 className="text-lg font-bold text-gray-800 mb-2 flex items-center">
         <i className="fas fa-comment-dots text-kameya-burgundy mr-2"></i>
         Щоденна рефлексія
       </h2>
+      <p className="text-sm text-gray-600 mb-6">Заповнюй в кінці дня, для нас важливо знати як пройшов твій день ☺️</p>
 
       <RatingScale label="1. Як ти загалом почуваєшся?" field="q1" />
       <RatingScale label="2. Зрозумілість матеріалу?" field="q2" />
