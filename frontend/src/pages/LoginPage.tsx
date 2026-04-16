@@ -14,16 +14,10 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
-    // Валідація вхідних даних
+    // Валідація номера телефону
     const phoneValidation = validation.phone(phone);
     if (!phoneValidation.valid) {
       setError(phoneValidation.error || 'Невірний номер телефону');
-      return;
-    }
-
-    const passwordValidation = validation.password(password);
-    if (!passwordValidation.valid) {
-      setError(passwordValidation.error || 'Невірний пароль');
       return;
     }
 

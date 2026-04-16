@@ -57,6 +57,7 @@ function UserForm({ initial, onSave, onCancel, isEdit, currentStartDate }: UserF
     e.preventDefault();
     setError('');
     if (!isEdit && !password) { setError('Введіть пароль'); return; }
+    if (!isEdit && password.length < 6) { setError('Пароль повинен бути не менше 6 символів'); return; }
     setLoading(true);
     try {
       await onSave({

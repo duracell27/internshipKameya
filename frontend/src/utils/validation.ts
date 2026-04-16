@@ -8,13 +8,6 @@ export const validation = {
       : { valid: false, error: 'Невірний формат номера телефону' };
   },
 
-  password: (value: string): { valid: boolean; error?: string } => {
-    if (value.length < 6) {
-      return { valid: false, error: 'Пароль повинен бути не менше 6 символів' };
-    }
-    return { valid: true };
-  },
-
   text: (value: string, minLength = 1, maxLength = Infinity): { valid: boolean; error?: string } => {
     const trimmed = value.trim();
     if (trimmed.length < minLength) {
